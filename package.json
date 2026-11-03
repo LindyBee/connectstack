@@ -1,0 +1,10 @@
+{
+  "name": "connectstack",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0",
+  "description": "ConnectStack (Free Beta)",
+  "dependencies": {
+    "@netlify/blobs": "^10.0.0"
+  }
+}
