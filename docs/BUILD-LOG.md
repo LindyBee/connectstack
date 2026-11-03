@@ -2,6 +2,26 @@
 
 Newest entry first. Each entry: what changed, why, and what's next.
 
+## 2026-11-03 · Shuttle is home, with five paths (branch `shuttle-five-paths`)
+
+**What changed**
+- Shuttle is now the first tab and opens when you sign in. The old home tab is renamed "My collabs".
+- "Choose a path" shows the five paths as a circle on wide screens. On phones, at large text sizes, or with no room for the circle, it becomes a simple list with big text. Each path shows its lesson count and your progress, and path 5 (Practice a collab) is outlined in orange.
+- New `public/shuttle-paths.js` holds 29 scripted lessons: Prompting 6, Hand-offs 5, Automation 5, Your AI helper 6, Practice a collab 7. Each lesson runs as Learn, then See an example, then Try it, all with 2 to 4 tappable choices in the chat ("Show me an example", "Let me try", "I did it", "Help me with this", "Skip for now", "Back to the paths").
+- Progress is saved on the device (localStorage) and survives a reload. Toasts celebrate the first lesson and each finished path. Sign out and "Delete my data" clear it.
+- When a member types a try, Shuttle's AI gets the current lesson as context. In basic mode (no AI), Shuttle gives a ready-made self-check for the lesson.
+- Choices are disabled while Shuttle is thinking. Keyboard focus moves to the first new choice, and "Back to the paths" returns focus to the "Choose a path" heading.
+- Fixed the microphone header in `netlify.toml` to `microphone=(self)`, matching `_headers`.
+- Broadened Shuttle's AI instructions in `api.mjs` to cover prompting, hand-offs, automation and AI helpers.
+- `sw.js` cache is now `connectstack-2` and caches `shuttle-paths.js`, so lessons work offline.
+
+**Tested** in Chromium at 1280 px and 390 px, and at XL text: no overlapping path cards, no sideways scrolling, no script errors, and focus and saved progress behaved as expected. Tested locally without a Claude key, so AI replies used basic mode.
+
+**Next**
+- Lindy reviews the lesson wording in `shuttle-paths.js`.
+- Save path progress to the member's account (Netlify Blobs) so it follows them across devices.
+- The ART prompt builder, My Prompt Library, the hand-off note template and the automation switches.
+
 ## 2026-11-03 · Moved into GitHub, started Shuttle's five paths
 
 **What changed**

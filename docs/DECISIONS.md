@@ -22,6 +22,9 @@ Lasting choices, newest last. Each has the date it was decided. Change a decisio
 - **2026-11-03 · Code lives in GitHub** at LindyBee/connectstack (private). `main` is what's deployed. Work happens on branches with pull requests, and every session is logged in `docs/BUILD-LOG.md`.
 - **2026-11-03 · Lessons are scripted, not generated.** Shuttle's five paths run from `public/shuttle-paths.js`, so lessons work offline, cost nothing and say exactly what Lindy approved. The AI is used only when a member asks their own question or wants feedback on a try.
 
+- **2026-11-03 · Path layout:** the circle shows only when there's room. Phones and large text sizes get a one-column list, because big text matters more than the circle.
+- **2026-11-03 · Lesson progress** is saved on the device for now (localStorage). Moving it to the member's account is planned.
+
 ## Accessibility and brand
 
 - WCAG 2.1 AA minimum, in every theme and in high-contrast mode. Display settings: text size up to 150%, Atkinson Hyperlegible and Lexend fonts, wide spacing, high contrast, dark mode, reduced motion.

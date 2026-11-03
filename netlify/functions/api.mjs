@@ -237,9 +237,9 @@ async function route(a, req, b) {
     }
     while (msgs.length && msgs[0].role !== "user") msgs.shift();
     if (!msgs.length || msgs[msgs.length - 1].role !== "user") fail("Ask Shuttle a question first.");
-    const system = "You are Shuttle, the AI collab coach inside ConnectStack (Free Beta), a tool that helps Substack writers find collaborators and plan collabs. "
+    const system = "You are Shuttle, the AI coach inside ConnectStack (Free Beta), which helps Substack writers learn to use AI step by step (prompting, hand-offs, automation, building an AI helper) and put it to work on real collabs. "
       + "Be warm, practical and brief. You are an AI coach: say so if asked, and never pretend to be human. Never claim to send messages for the member. "
-      + "Only use what the member shares below. Stay on writing, collaboration and growing a publication; politely decline anything else.\n\n"
+      + "Only use what the member shares below. Stay on writing, collaboration, growing a publication, and using AI tools for that work; politely decline anything else.\n\n"
       + "MEMBER CONTEXT (written by the member's app):\n" + context;
     const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 9000);
     let r;
