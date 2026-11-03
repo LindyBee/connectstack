@@ -28,6 +28,7 @@ Lasting choices, newest last. Each has the date it was decided. Change a decisio
 ## Accessibility and brand
 
 - WCAG 2.1 AA minimum, in every theme and in high-contrast mode. Display settings: text size up to 150%, Atkinson Hyperlegible and Lexend fonts, wide spacing, high contrast, dark mode, reduced motion.
+- **2026-11-03 · Dark mode is espresso** (warm browns with cream text), not gray or black. It follows the phone's setting or the Display toggle.
 - Colors: turquoise #40E0D0 and cream #F7F3EA (The Connected Collective) plus Substack orange #FF6719. Orange is used only as a fill with dark text on it (#141B1C); orange text uses #B03E08 for contrast.
 - The CS monogram (turquoise C linked with orange S on a charcoal tile) is the app icon and sits in the top corner.
 - Read-aloud should use a warm female voice, the same one as Lindy's Substack article audio, until Shuttle's recorded character voice is ready.

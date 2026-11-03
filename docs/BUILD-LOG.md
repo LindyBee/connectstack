@@ -14,6 +14,7 @@ Newest entry first. Each entry: what changed, why, and what's next.
 - Fixed the microphone header in `netlify.toml` to `microphone=(self)`, matching `_headers`.
 - Broadened Shuttle's AI instructions in `api.mjs` to cover prompting, hand-offs, automation and AI helpers.
 - `sw.js` cache is now `connectstack-2` and caches `shuttle-paths.js`, so lessons work offline.
+- Dark mode is now espresso: warm brown backgrounds (#241A17 page, #3A2B27 cards) with cream text, turquoise links and orange accents. Neutral tags stay cream so their dark text still reads. The phone's top bar matches in dark mode. High-contrast dark mode is unchanged (pure black and white). Checked every visible text color: all pass 4.5:1.
 
 **Tested** in Chromium at 1280 px and 390 px, and at XL text: no overlapping path cards, no sideways scrolling, no script errors, and focus and saved progress behaved as expected. Tested locally without a Claude key, so AI replies used basic mode.
 

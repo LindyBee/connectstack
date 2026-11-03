@@ -8,7 +8,8 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#1E2627">
+<meta name="theme-color" content="#1E2627" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#241A17" media="(prefers-color-scheme: dark)">
 <meta name="description" content="ConnectStack (Free Beta) helps Substack writers find collaborators and plan every collab on one calendar.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,6 +18,7 @@
 <script>window.CS_API = "/api";</script>
 
 <style>
+/* Dark mode is espresso: warm browns with cream text (Lindy, 2026-11-03). */
 /* Layout: light app bar + tab row over a cream page; one content column (max 960px). Color is used only as accent: buttons, active tab, match ring, collab-type tags. */
 :root{
   --bg:#FFFFFF; --surface:#FFFFFF; --surface-2:#F7F8F8; --line:#DCDFE0;
@@ -30,13 +32,13 @@
   --lh:1.6; --ls:0em; --ws:0em; --r:14px;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#151A1B; --surface:#1F2526; --surface-2:#1A2021; --line:#3B4446;
-  --fg:#F7F3EA; --muted:#C2C7C8; --accent-text:#FF9A5E; --teal-text:#5FEAD9; --turq-soft:#17403C;
-  --field:#7E888A; --focus:#F9D27A; --warn-bg:#2A2E2A; color-scheme:dark}}
+  --bg:#241A17; --surface:#3A2B27; --surface-2:#2F2320; --line:#5E4A43;
+  --fg:#F7F3EA; --muted:#E2D5C8; --accent-text:#FF9A5E; --teal-text:#5FEAD9; --turq-soft:#1F4842;
+  --chip-neutral:#EFE4D6; --field:#A08A80; --focus:#F9D27A; --warn-bg:#4A3826; color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#151A1B; --surface:#1F2526; --surface-2:#1A2021; --line:#3B4446;
-  --fg:#F7F3EA; --muted:#C2C7C8; --accent-text:#FF9A5E; --teal-text:#5FEAD9; --turq-soft:#17403C;
-  --field:#7E888A; --focus:#F9D27A; --warn-bg:#2A2E2A; color-scheme:dark}
+  --bg:#241A17; --surface:#3A2B27; --surface-2:#2F2320; --line:#5E4A43;
+  --fg:#F7F3EA; --muted:#E2D5C8; --accent-text:#FF9A5E; --teal-text:#5FEAD9; --turq-soft:#1F4842;
+  --chip-neutral:#EFE4D6; --field:#A08A80; --focus:#F9D27A; --warn-bg:#4A3826; color-scheme:dark}
 
 /* High contrast (Display settings) */
 :root[data-contrast="high"]{
