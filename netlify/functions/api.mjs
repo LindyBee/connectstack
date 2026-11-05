@@ -115,8 +115,38 @@ async function deleteMember(m) {
   for (const k of await keys(`pr/${id}/`)) { const r = await getJ(k); if (r) await del(`po/${r.from}/${r.collab}`); await del(k); }
   for (const k of await keys(`po/${id}/`)) { const r = await getJ(k); if (r) await del(`pr/${r.to}/${r.rid}`); await del(k); }
   for (const k of await keys(`si/${id}/`)) { await del("s/" + k.split("/").pop()); await del(k); }
+  await deleteThreadsOf(id);   // removes this member's own messages and voice memos; the other person keeps theirs
   await del(`st/${id}`); await del(`e/${sha(m.email)}`); await del(`code/${sha(m.email)}`); await del(`m/${id}`);
 }
+/* ---------- messages between two members (text and voice memos) ----------
+   t/<pair>/<msgId>   one message           ta/<pair>/<msgId>  a voice memo's sound (base64)
+   ti/<me>/<other>    my inbox line for that person: {last, from, read} in milliseconds */
+const pairOf = (a, b) => (a < b ? `${a}-${b}` : `${b}-${a}`);
+const AUDIO_TYPES = ["audio/webm", "audio/ogg", "audio/mp4", "audio/aac", "audio/mpeg"];
+const MAX_AUDIO_B64 = 1600000;            // about 1.2 MB of sound: a 2-minute memo with room to spare
+const MAX_MEMO_SECONDS = 120, MAX_THREAD = 1000, SHOW_LAST = 60;
+const msgKey = id => /^[0-9]{13}-[a-z0-9]{6}$/.test(String(id || ""));
+async function threadPartner(m, b) {
+  const other = parseInt(b.with) || 0;
+  if (!other || other === m.id) fail("Choose who this message is for.");
+  const o = await getJ("m/" + other);
+  if (!o) fail("That writer isn’t on ConnectStack anymore.", 404, "gone");
+  return { o, pair: pairOf(m.id, other) };
+}
+const showMsg = (x, me) => ({ id: x.id, mine: x.from === me, at: x.at, text: x.text || "", voice: !!x.voice, dur: x.dur || 0, caption: x.caption || "" });
+async function deleteThreadsOf(id) {
+  for (const k of await keys(`ti/${id}/`)) {
+    const other = parseInt(k.split("/").pop()) || 0, pair = pairOf(id, other);
+    let left = 0;
+    for (const mk of await keys(`t/${pair}/`)) {
+      const x = await getJ(mk);
+      if (x && x.from === id) { await del(mk); await del(`ta/${pair}/${x.id}`); } else if (x) left++;
+    }
+    await del(k);
+    if (!left) await del(`ti/${other}/${id}`);
+  }
+}
+
 async function allMembers() {
   const ks = await keys("m/"), out = [];
   for (let i = 0; i < ks.length; i += 25) out.push(...(await Promise.all(ks.slice(i, i + 25).map(getJ))).filter(Boolean));
@@ -174,7 +204,58 @@ async function route(a, req, b) {
     const answered = (await Promise.all((await keys(`po/${m.id}/`)).map(getJ))).filter(r => r && r.status !== "pending").map(r => ({ collab: r.collab, status: r.status }));
     const state = await getJ("st/" + m.id);
     const me = { id: m.id, email: m.email, owner: m.email === ownerEmail(), listed: m.listed !== false, profile: m.profile };
-    return { me, state: state && Object.keys(state).length ? state : null, writers, incoming, answered };
+    const threads = (await Promise.all((await keys(`ti/${m.id}/`)).map(async k => ({ k, v: await getJ(k) }))))
+      .filter(x => x.v).map(x => ({ with: parseInt(x.k.split("/").pop()) || 0, last: x.v.last, unread: x.v.from !== m.id && x.v.last > (x.v.read || 0) }));
+    return { me, state: state && Object.keys(state).length ? state : null, writers, incoming, answered, threads };
+  }
+  case "thread": {
+    const m = await member(req), op = b.op;
+    const { o, pair } = await threadPartner(m, b);
+    const inbox = async (who, other) => (await getJ(`ti/${who}/${other}`)) || { last: 0, from: 0, read: 0 };
+    if (op === "list") {
+      const ks = (await keys(`t/${pair}/`)).sort().slice(-SHOW_LAST);
+      const msgs = (await Promise.all(ks.map(getJ))).filter(Boolean).map(x => showMsg(x, m.id));
+      const mine = await inbox(m.id, o.id);
+      if (mine.last && mine.read < mine.last) { mine.read = mine.last; await setJ(`ti/${m.id}/${o.id}`, mine); }
+      return { messages: msgs, name: o.profile.name || "This writer" };
+    }
+    if (op === "send") {
+      if (await tooMany("msg:" + m.id, 80, 86400)) fail("You’ve sent a lot of messages today. Try again tomorrow.", 429, "rate_limited");
+      if ((await keys(`t/${pair}/`)).length >= MAX_THREAD) fail("This conversation is full. Delete some older messages first.", 413);
+      const at = Date.now(), id = String(at) + "-" + randomBytes(4).toString("hex").slice(0, 6);
+      const x = { id, from: m.id, at };
+      if (b.audio && typeof b.audio === "object") {
+        const type = String(b.audio.type || "").split(";")[0].trim().toLowerCase(), data = String(b.audio.data || "");
+        if (!AUDIO_TYPES.includes(type)) fail("That recording format isn’t supported. Try recording again.");
+        if (!data || data.length > MAX_AUDIO_B64 || !/^[A-Za-z0-9+/]+=*$/.test(data)) fail("That voice memo is too long. Keep it under 2 minutes.", 413);
+        x.voice = true; x.dur = Math.max(1, Math.min(MAX_MEMO_SECONDS, Math.round(+b.audio.dur || 0)));
+        x.caption = str(b.caption, 4000);
+        await setJ(`ta/${pair}/${id}`, { type, data });
+      } else {
+        x.text = str(b.text, 2000);
+        if (!x.text) fail("Type a message first.");
+      }
+      await setJ(`t/${pair}/${id}`, x);
+      const theirs = await inbox(o.id, m.id);
+      await setJ(`ti/${m.id}/${o.id}`, { last: at, from: m.id, read: at });
+      await setJ(`ti/${o.id}/${m.id}`, { last: at, from: m.id, read: theirs.read || 0 });
+      return { message: showMsg(x, m.id) };
+    }
+    if (op === "audio") {
+      if (!msgKey(b.id)) fail("That voice memo wasn’t found.", 404);
+      const a = await getJ(`ta/${pair}/${b.id}`);
+      if (!a) fail("That voice memo wasn’t found.", 404);
+      return a;
+    }
+    if (op === "delete") {
+      if (!msgKey(b.id)) fail("That message wasn’t found.", 404);
+      const x = await getJ(`t/${pair}/${b.id}`);
+      if (!x) return { ok: true };
+      if (x.from !== m.id) fail("You can only delete your own messages.", 403, "forbidden");
+      await del(`t/${pair}/${b.id}`); await del(`ta/${pair}/${b.id}`);
+      return { ok: true };
+    }
+    fail("Unknown request.");
   }
   case "save": {
     const m = await member(req);
@@ -282,7 +363,7 @@ export default async (req) => {
   if (req.method !== "POST") return json({ error: "Use POST.", code: "bad_request" }, 405);
   const a = new URL(req.url).searchParams.get("a") || "";
   let b = {};
-  try { const raw = await req.text(); if (raw.length > 400000) return json({ error: "Too much data.", code: "bad_request" }, 413); b = raw ? JSON.parse(raw) : {}; if (!b || typeof b !== "object") b = {}; } catch (e) { b = {}; }
+  try { const raw = await req.text(); if (raw.length > (a === "thread" ? 2200000 : 400000)) return json({ error: "Too much data.", code: "bad_request" }, 413); b = raw ? JSON.parse(raw) : {}; if (!b || typeof b !== "object") b = {}; } catch (e) { b = {}; }
   try { return json(await route(a, req, b)); }
   catch (e) {
     if (e instanceof Fail) return json({ error: e.message, code: e.code }, e.status);
